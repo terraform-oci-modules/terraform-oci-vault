@@ -1,0 +1,42 @@
+name: Release
+
+# This module is kept private and unreleased. The push trigger is intentionally
+# removed so commits to main do not cut a version. Restore the push block (see
+# the sibling modules) and make the repo public when it is ready to publish.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set correct Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: |
+          npm install \
+            @semantic-release/changelog@6.0.3 \
+            @semantic-release/git@10.0.1 \
+            conventional-changelog-conventionalcommits@9.1.0
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        with:
+          semantic_version: 25.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}

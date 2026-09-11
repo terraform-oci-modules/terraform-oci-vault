@@ -1,0 +1,6 @@
+skip-check:
+  # CKV_TF_1: Registry module refs should use commit hashes. Terraform Registry sources use
+  #   semantic version constraints (version = "~> x.y"), not commit hashes. Kept for parity
+  #   with the sibling modules and in case an example later sources a registry module; no
+  #   example in this repo currently does.
+  - CKV_TF_1
