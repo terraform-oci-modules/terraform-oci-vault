@@ -86,7 +86,9 @@ resource "oci_kms_key" "this" {
 
   # Enable auto-rotation implicitly when an interval is given, so a lone
   # rotation_interval_in_days does not produce a schedule with the flag unset.
-  is_auto_rotation_enabled = each.value.is_auto_rotation_enabled != null ? each.value.is_auto_rotation_enabled : (each.value.rotation_interval_in_days != null ? true : null)
+  # Always an explicit true/false, never null: the provider treats null as
+  # "keep the current value", so removing the interval left rotation on.
+  is_auto_rotation_enabled = coalesce(each.value.is_auto_rotation_enabled, each.value.rotation_interval_in_days != null)
 
   key_shape {
     algorithm = each.value.key_shape.algorithm
