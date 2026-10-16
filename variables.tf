@@ -100,15 +100,6 @@ variable "replica_region" {
   EOT
   type        = string
   default     = null
-
-  validation {
-    condition     = var.replica_region == null || var.vault_id == null
-    error_message = "replica_region cannot be used with vault_id: the module only replicates a vault it creates."
-  }
-  validation {
-    condition     = var.replica_region == null || var.vault.vault_type == "VIRTUAL_PRIVATE"
-    error_message = "replica_region requires vault.vault_type = \"VIRTUAL_PRIVATE\" (OCI only replicates virtual private vaults)."
-  }
 }
 
 ################################################################################
@@ -194,7 +185,7 @@ variable "keys" {
   validation {
     condition = alltrue([
       for k, v in var.keys :
-      v.rotation_interval_in_days == null || (v.rotation_interval_in_days >= 60 && v.rotation_interval_in_days <= 365)
+      v.rotation_interval_in_days == null ? true : (v.rotation_interval_in_days >= 60 && v.rotation_interval_in_days <= 365)
     ])
     error_message = "keys[*].rotation_interval_in_days must be between 60 and 365."
   }
