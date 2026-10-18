@@ -337,7 +337,7 @@ run "rejects_replica_region_on_default_vault" {
     replica_region = "us-phoenix-1"
   }
 
-  expect_failures = [var.replica_region]
+  expect_failures = [oci_kms_vault.this]
 }
 
 run "rejects_replica_region_with_vault_id" {
@@ -348,7 +348,7 @@ run "rejects_replica_region_with_vault_id" {
     replica_region = "us-phoenix-1"
   }
 
-  expect_failures = [var.replica_region]
+  expect_failures = [data.oci_kms_vault.existing]
 }
 
 run "rejects_bad_key_name" {

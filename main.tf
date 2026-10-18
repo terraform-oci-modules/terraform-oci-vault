@@ -16,6 +16,15 @@ data "oci_kms_vault" "existing" {
   count = local.create && var.vault_id != null ? 1 : 0
 
   vault_id = var.vault_id
+
+  lifecycle {
+    # A precondition, not a variable validation: Terraform 1.7 validations can
+    # only refer to their own variable.
+    precondition {
+      condition     = var.replica_region == null
+      error_message = "replica_region cannot be used with vault_id: the module only replicates a vault it creates."
+    }
+  }
 }
 
 ################################################################################
@@ -43,6 +52,10 @@ resource "oci_kms_vault" "this" {
   }
 
   lifecycle {
+    precondition {
+      condition     = var.replica_region == null || var.vault.vault_type == "VIRTUAL_PRIVATE"
+      error_message = "replica_region requires vault.vault_type = \"VIRTUAL_PRIVATE\" (OCI only replicates virtual private vaults)."
+    }
     # OCI auto-injects Oracle-Tags (CreatedBy/CreatedOn) into defined_tags and can
     # apply compartment tag defaults; ignoring both tag maps avoids perpetual
     # drift. Matches terraform-oci-iam / terraform-oci-vcn. Trade-off: tag changes
@@ -73,7 +86,9 @@ resource "oci_kms_key" "this" {
 
   # Enable auto-rotation implicitly when an interval is given, so a lone
   # rotation_interval_in_days does not produce a schedule with the flag unset.
-  is_auto_rotation_enabled = each.value.is_auto_rotation_enabled != null ? each.value.is_auto_rotation_enabled : (each.value.rotation_interval_in_days != null ? true : null)
+  # Always an explicit true/false, never null: the provider treats null as
+  # "keep the current value", so removing the interval left rotation on.
+  is_auto_rotation_enabled = coalesce(each.value.is_auto_rotation_enabled, each.value.rotation_interval_in_days != null)
 
   key_shape {
     algorithm = each.value.key_shape.algorithm
